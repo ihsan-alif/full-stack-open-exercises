@@ -1,34 +1,9 @@
 import {useState, useEffect} from 'react'
 import axios from 'axios'
-
-const Filter = ({value, onChange}) => {
-
-  return (
-    <div>filter shown with <input value={value} onChange={onChange} /></div>
-  )
-}
-
-const PersonForm = ({onSubmit, newName, handleNameChange, newNumber, handleNumberChange}) => {
-
-  return (
-    <form onSubmit={onSubmit}>
-      <div>name: <input value={newName} onChange={handleNameChange} /></div>
-      <div>number: <input value={newNumber} onChange={handleNumberChange} /></div>
-      <div><button type="submit">add</button></div>
-    </form>
-  )
-}
-
-const Persons = ({personsToShow}) => {
-
-  return (
-    <div>
-      {personsToShow.map((person) => (
-        <div key={person.id}>{person.name} {person.number}</div>
-      ))}
-    </div>
-  )
-}
+import phoneService from './services/phonebook'
+import Filter from './components/FIlter'
+import Persons from './components/Persons'
+import PersonForm from './components/PersonForm'
 
 const App = () => {
 
@@ -38,10 +13,10 @@ const App = () => {
   const [searchFilter, setSearchFilter] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
+    phoneService
+      .getAll()
+      .then(initialPhonebook => {
+        setPersons(initialPhonebook)
       })
   }, [])
 
@@ -50,22 +25,54 @@ const App = () => {
     
     const cleanName = newName
     const cleanNumber = newNumber
-    const isExist = persons.some(person => person.name.toLowerCase() === cleanName.toLowerCase())
+    const existingPerson = persons.find(
+      person => person.name.toLowerCase() === cleanName.toLowerCase()
+    )
     
-    if (isExist) {
-      alert(`${cleanName} is already added to phonebook`)
+    if (existingPerson) {
+      const ok = window.confirm(`${cleanName} is already added to phonebook, replace the old number with a new one?`)
+      
+      if (ok) {
+
+        const updatedPerson = {...existingPerson, number: cleanNumber}
+
+        phoneService
+          .update(existingPerson.id, updatedPerson)
+          .then(returnedPerson => {
+            setPersons(persons.map(person => person.id === existingPerson.id ? returnedPerson : person))
+            setNewName('')
+            setNewNumber('')
+          })
+      }
       return
     }
     
     const nameObject = {
       name: cleanName,
-      number: cleanNumber,
-      id: String(persons.length + 1)
+      number: cleanNumber
     }
 
-    setPersons(persons.concat(nameObject))
-    setNewName('')
-    setNewNumber('')
+    phoneService
+      .create(nameObject)
+      .then(phoneObject => {
+        setPersons(persons.concat(phoneObject))
+        setNewName('')
+        setNewNumber('')
+      })
+  }
+
+  const deletePerson = id => {
+
+    const person = persons.find(n => n.id === id)
+    const ok = window.confirm(`Delete ${person.name} ?`)
+
+    if (ok) {
+      phoneService
+        .deletePerson(id)
+        .then(response => {
+          setPersons(persons.filter(n => n.id !== id))
+        })
+    }
   }
 
   const handleNameChange = (e) => {
@@ -97,7 +104,7 @@ const App = () => {
         handleNumberChange={handleNumberChange}
       />
       <h2>Numbers</h2>
-      <Persons personsToShow={personsToShow} />
+      <Persons personsToShow={personsToShow} onDelete={deletePerson} />
     </div>
   )
 }
