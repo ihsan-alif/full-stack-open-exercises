@@ -3,7 +3,8 @@ const cors = require('cors')
 const app = express()
 
 app.use(cors())
-app.use(express.static('dist'))
+app.use(express.json())
+app.use(express.static('./dist'))
 
 const requestLogger = (req, res, next) => {
     console.log('Methods:   ', req.method)
@@ -13,7 +14,6 @@ const requestLogger = (req, res, next) => {
     next()
 }
 
-app.use(express.json())
 app.use(requestLogger)
 
 let notes = [
@@ -44,7 +44,7 @@ app.get('/api/notes', (request, response) => {
   response.json(notes)
 })
 
-const genreateId = () => {
+const generateId = () => {
   const maxId = notes.length > 0
     ? Math.max(...notes.map(n => Number(n.id)))
     : 0
@@ -63,7 +63,7 @@ app.post('/api/notes', (request, response) => {
     }
 
     const note = {
-      id: genreateId(),
+      id: generateId(),
       content: body.content,
       important: body.important || false
     }
