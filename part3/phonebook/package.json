@@ -1,0 +1,24 @@
+{
+  "name": "phonebook",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [
+    "phonebook"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "github.com/ihsan-alif/full-stack-open-exercises"
+  },
+  "license": "ISC",
+  "author": "Ihsan Alif",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "morgan": "^1.12.0"
+  }
+}
