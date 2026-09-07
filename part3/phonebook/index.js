@@ -17,8 +17,6 @@ app.use(
     morgan(':method :url :status :res[content-length] - :response-time ms :body')
 )
 
-let persons = []
-
 const baseUrl = '/api/persons'
 
 app.get('/', (req, res) => {
@@ -26,11 +24,13 @@ app.get('/', (req, res) => {
     res.send('<h1>Hello World</h1>')
 })
 
-app.get(`${baseUrl}`, (req, res) => {
+app.get(`${baseUrl}`, (req, res, next) => {
     
-    Person.find({}).then(savedPerson => {
-        res.json(savedPerson)
-    })
+    Person.find({})
+        .then(savedPerson => {
+            res.json(savedPerson)
+        })
+        .catch(err => next(err))
 })
 
 app.get(`${baseUrl}/:id`, (req, res, next) => {
@@ -48,55 +48,42 @@ app.get(`${baseUrl}/:id`, (req, res, next) => {
         .catch(err => next(err))
 })
 
-app.post(`${baseUrl}`, (req, res) => {
+app.post(`${baseUrl}`, (req, res, next) => {
 
     const body = req.body
-
-    if (!body.name || !body.number) {
-        return res.status(400).json({
-            error: 'name or number is missing'
-        })
-    }
-
-    const nameExist = persons.some(
-        n => n.name.trim().toLowerCase() === body.name.trim().toLowerCase()
-    )
-
-    if (nameExist) {
-        return res.status(400).json({
-            error: 'name must be unique'
-        })
-    }
 
     const person = new Person({
         name: body.name,
         number: body.number,
     })
 
-    person.save().then(savedPerson => {
-        res.json(savedPerson)
-    })
-})
-
-app.put('/api/persons/:id', (req, res, next) => {
-    
-    const {number} = req.body
-
-    Person.findById(req.params.id)
-        .then(person => {
-            if (!person) {
-                return res.status(404).end()
-            }
-
-            person.number = number
-            return person.save().then(updatedPerson => {
-                response.json(updatedPerson)
-            })
+    person.save()
+        .then(savedPerson => {
+            res.json(savedPerson)
         })
         .catch(err => next(err))
 })
 
-app.delete(`${baseUrl}/:id`, (req, res) => {
+app.put('/api/persons/:id', (req, res, next) => {
+    
+    const {name, number} = req.body
+
+    Person.findByIdAndUpdate(
+        req.params.id, 
+        {name, number}, 
+        {new: true, runValidators: true, context: 'query'}
+    )
+        .then(updatedPerson => {
+            if (updatedPerson) {
+                res.json(updatedPerson)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(err => next(err))
+})
+
+app.delete(`${baseUrl}/:id`, (req, res, next) => {
 
     const id = req.params.id
     Person.findOneAndDelete(id)
@@ -132,7 +119,10 @@ const errorHandler = (err, request, response, next) => {
 
   if (err.name === 'CastError') {
     return response.status(400).send({error: 'malformed id'})
+  } else if (err.name === 'ValidationError') {
+    return response.status(400).json({error: err.message})
   }
+
   next(err)
 }
 
