@@ -33,17 +33,19 @@ app.get(`${baseUrl}`, (req, res) => {
     })
 })
 
-app.get(`${baseUrl}/:id`, (req, res) => {
+app.get(`${baseUrl}/:id`, (req, res, next) => {
 
     const id = req.params.id
     
-    Person.findById(id).then(person => {
-        if (person) {
-            res.json(person)
-        } else {
-            res.status(404).end()
-        }
-    })
+    Person.findById(id)
+        .then(person => {
+            if (person) {
+                res.json(person)
+            } else {
+                res.status(404).end()
+            }
+        })
+        .catch(err => next(err))
 })
 
 app.post(`${baseUrl}`, (req, res) => {
@@ -76,25 +78,65 @@ app.post(`${baseUrl}`, (req, res) => {
     })
 })
 
+app.put('/api/persons/:id', (req, res, next) => {
+    
+    const {number} = req.body
+
+    Person.findById(req.params.id)
+        .then(person => {
+            if (!person) {
+                return res.status(404).end()
+            }
+
+            person.number = number
+            return person.save().then(updatedPerson => {
+                response.json(updatedPerson)
+            })
+        })
+        .catch(err => next(err))
+})
+
 app.delete(`${baseUrl}/:id`, (req, res) => {
 
     const id = req.params.id
-    persons = persons.filter(n => n.id !== id)
+    Person.findOneAndDelete(id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(err => next(err))
 
-    res.status(204).end()
 })
 
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
     
-    const totalEntries = persons.length
-
-    const requestTime = new Date()
-
-    res.send(`
-        <p>Phonebook has info for ${totalEntries} people</p>
-        <p>${requestTime}</p>
-    `)
+    Person.countDocuments({})
+        .then(count => {
+            const date = new Date()
+            res.send(`
+                <p>Phonebook has info for ${count} people</p>
+                <p>${date}</p>
+            `)
+        })
+        .catch(err => next(err))
 })
+
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({error: 'unknown endpoint'})
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (err, request, response, next) => {
+  
+  console.error(err.message)
+
+  if (err.name === 'CastError') {
+    return response.status(400).send({error: 'malformed id'})
+  }
+  next(err)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
