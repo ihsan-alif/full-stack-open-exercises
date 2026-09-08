@@ -5,17 +5,21 @@ const url = process.env.MONGODB_URI
 console.log('connecting to', url)
 
 mongoose.set('strictQuery', false)
-mongoose.connect(url, {family: 4})
-    .then(res => {
-        console.log('connected to MongoDB')
-    })
-    .catch(err => {
-        console.log('error connecting to MongoDB', err.message)
-    })
+mongoose.connect(url, { family: 4 })
+  .then(() => {
+    console.log('connected to MongoDB')
+  })
+  .catch(err => {
+    console.log('error connecting to MongoDB', err.message)
+  })
 
 const noteSchema = new mongoose.Schema({
-    content: String,
-    important: Boolean,
+  content: {
+    type: String,
+    minLength: 5,
+    required: true,
+  },
+  important: Boolean,
 })
 
 noteSchema.set('toJSON', {
