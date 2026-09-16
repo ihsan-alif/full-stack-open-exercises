@@ -13,6 +13,47 @@ beforeEach(async () => {
   await Blog.insertMany(initialBlogs)
 })
 
+describe('updating a blog', () => {
+  test('succeeds with valid data and updates likes', async () => {
+    const blogsAtStart = await blogsInDb()
+    const blogToUpdate = blogsAtStart[0]
+
+    const updatedData = {
+      ...blogToUpdate,
+      likes: blogToUpdate.likes + 1
+    }
+
+    const response = await api
+      .put(`/api/blogs/${blogToUpdate.id}`)
+      .send(updatedData)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    assert.strictEqual(response.body.likes, blogToUpdate.likes + 1)
+
+    const blogsAtEnd = await blogsInDb()
+    const updatedBlogInDb = blogsAtEnd.find(b => b.id === blogToUpdate.id)
+    assert.strictEqual(updatedBlogInDb.likes, blogToUpdate.likes + 1)
+  })
+})
+
+describe('deletion of a blog', () => {
+  test('succeeds with status code 204 if id is valid', async () => {
+    const blogsAtStart = await blogsInDb()
+    const blogToDelete = blogsAtStart[0]
+
+    await api
+      .delete(`/api/blogs/${blogToDelete.id}`)
+      .expect(204)
+
+    const blogsAtEnd = await blogsInDb()
+    assert.strictEqual(blogsAtEnd.length, initialBlogs.length - 1)
+
+    const titles = blogsAtEnd.map(r => r.title)
+    assert(!titles.includes(blogToDelete.title))
+  })
+})
+
 describe('fails with status code 400 if title or url missing', () => {
   test('title missing', async () => {
     const blogWithoutTitle = {
