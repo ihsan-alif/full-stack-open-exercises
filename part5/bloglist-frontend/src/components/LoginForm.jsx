@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { FormContainer, Form, FormTitle, Input, PrimaryButton } from './Styled'
 
 const LoginForm = ({ onLogin }) => {
 
@@ -13,28 +14,23 @@ const LoginForm = ({ onLogin }) => {
   }
 
   return (
-    <div>
-      <h2>Login</h2>
-
-      <form onSubmit={handleSubmit}>
-        <div>
-          username:
-          <input
-            value={username}
-            onChange={({ target }) => setUsername(target.value)}
-          />
-        </div>
-        <div>
-          password
-          <input
-            type="password"
-            value={password}
-            onChange={({ target }) => setPassword(target.value)}
-          />
-        </div>
-        <button type="submit">login</button>
-      </form>
-    </div>
+    <FormContainer>
+      <FormTitle>Log in to application</FormTitle>
+      <Form onSubmit={handleSubmit}>
+        <Input
+          value={username}
+          onChange={({ target }) => setUsername(target.value)}
+          placeholder='username'
+        />
+        <Input
+          type="password"
+          value={password}
+          onChange={({ target }) => setPassword(target.value)}
+          placeholder='password'
+        />
+        <PrimaryButton type="submit">LOGIN</PrimaryButton>
+      </Form>
+    </FormContainer>
   )
 }
 

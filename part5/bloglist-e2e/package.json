@@ -1,0 +1,21 @@
+{
+  "name": "bloglist-e2e",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "github.com/ihsan-alif/part5"
+  },
+  "license": "ISC",
+  "author": "ihsan-alif",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.5"
+  }
+}

@@ -1,4 +1,18 @@
 import { useState } from 'react'
+import styled from 'styled-components'
+import { FormContainer, Form, FormTitle, PrimaryButton } from './Styled'
+
+const Input = styled.input`
+  padding: 10px;
+  border: 1px solid;
+  border-radius: 4px;
+  font-size: 16px;
+
+  &:focus {
+    outline: 2px solid #1976d2;
+    border-color: transparent;
+  }
+`
 
 const BlogForm = ({ createBlog }) => {
 
@@ -15,38 +29,35 @@ const BlogForm = ({ createBlog }) => {
   }
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <div>
-          title:
-          <input
-            type="text"
-            value={title}
-            onChange={({ target }) => setTitle(target.value)}
-          />
-        </div>
+    <FormContainer>
+      <FormTitle>
+        create new
+      </FormTitle>
 
-        <div>
-          author:
-          <input
-            type="text"
-            value={author}
-            onChange={({ target }) => setAuthor(target.value)}
-          />
-        </div>
-
-        <div>
-          url:
-          <input
-            type="text"
-            value={url}
-            onChange={({ target }) => setUrl(target.value)}
-          />
-        </div>
-
-        <button type="submit">save</button>
-      </form>
-    </div>
+      <Form onSubmit={handleSubmit}>
+        <Input
+          label='title'
+          value={title}
+          onChange={event => setTitle(event.target.value)}
+          placeholder='title'
+        />
+        <Input
+          label='author'
+          value={author}
+          onChange={event => setAuthor(event.target.value)}
+          placeholder='author'
+        />
+        <Input
+          label='url'
+          value={url}
+          onChange={event => setUrl(event.target.value)}
+          placeholder='url'
+        />
+        <PrimaryButton>
+          CREATE
+        </PrimaryButton>
+      </Form>
+    </FormContainer>
   )
 }
 
